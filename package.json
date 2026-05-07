@@ -1,0 +1,24 @@
+{
+  "name": "franciscojavierfreiramarchante_trabajofinalmarcas",
+  "version": "1.0.0",
+  "description": "Trabajo final de la asignatura de lenguajes de marcas en el que creo una API con nodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sinononame/FranciscoJavierFreiraMarchante_TrabajoFinalMarcas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sinononame/FranciscoJavierFreiraMarchante_TrabajoFinalMarcas/issues"
+  },
+  "homepage": "https://github.com/sinononame/FranciscoJavierFreiraMarchante_TrabajoFinalMarcas#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
