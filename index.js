@@ -1,3 +1,5 @@
+//Punto 1 -----
+
 const express = require("express");
 const app = express();
 const port = 5555;
@@ -8,7 +10,9 @@ app.listen(port, () => {
 
     console.log("Server abierto🐧")
 })
+// -----
 
+//Punto 2 -----
 //Datos
 
 let Mi_Biblioteca = [
@@ -23,17 +27,37 @@ let Mi_Biblioteca = [
     {"id": 5, "Titulo": "El Imperio Final", "Autor/a": "Brandon Sanderson", "Genero": "Fantasía épica", "Año": 2006, "Paginas": 576, "Disponible": true, "Editorial": "Nova"}
 ];
 
+let Mis_Prestamos = [
+    {"id": 1, "libro_id": 1, "usuario": "Paco García", "fecha_prestamo": "01/05/2026", "fecha_devolucion": "15/05/2026", "devuelto": false},
+ 
+    {"id": 2, "libro_id": 2, "usuario": "María López", "fecha_prestamo": "20/04/2026", "fecha_devolucion": "04/05/2026", "devuelto": true},
+    
+    {"id": 3, "libro_id": 3, "usuario": "Carlos Ruiz", "fecha_prestamo": "03/04/2026", "fecha_devolucion": "17/05/2026", "devuelto": false},
+    
+    {"id": 4, "libro_id": 4, "usuario": "Laura Martínez", "fecha_prestamo": "20/04/2026", "fecha_devolucion": "24/04/2026", "devuelto": true},
+    
+    {"id": 5, "libro_id": 5, "usuario": "Sergio Díaz", "fecha_prestamo": "06/05/2026", "fecha_devolucion": "20/05/2026", "devuelto": false}
+]
+
+// -----
+
+// Punto 3 -----
+
+//TODO: Añadir alguno mas que falte
 
 // Interacciones
 
+//Al poner en el buscador simplemente la / saldrá toda la API al completo
 app.get("/", (req,res) => {
     return res.json(Mi_Biblioteca)
 })
 
+//Al poner en el buscador simplemente la /mi_fav saldrá como ejemplo mi libro favorito(lo cambiaré)
 app.get("/mi_fav", (req,res) => {
     return res.json(Mi_Biblioteca[0])
 })
 
+//Usando post y /guardar_libro podremos añadir libros usando los campos necesarios 
 app.post("/guardar_libro", (req, res) => {
 
     let nuevoLibro = {
@@ -48,9 +72,10 @@ app.post("/guardar_libro", (req, res) => {
     }
 
     Mi_Biblioteca.push(nuevoLibro);
-    return res.status(201).json(nuevoLibro);  
+    return res.status(201).json(nuevoLibro);  //El mensaje de HTTP 201 es "created"
 })
 
+//Al usar esta funcion modificaremos los datos de los libros 
 app.put("/actualizar_libro", (req,res) => {
 
     Mi_Biblioteca[req.body.id-1].Titulo = req.body.Titulo;
@@ -65,6 +90,7 @@ app.put("/actualizar_libro", (req,res) => {
 
 })
 
+//Al usar esta simplemente borraremos un libro que queramos o si no, no se encontrará
 app.delete("/borrar_libro", (req,res) => {
 
     const index = Mi_Biblioteca.findIndex(a => a.id == req.body.id)
@@ -90,3 +116,5 @@ app.get("/libros", (req, res) => {
     const libros = Mi_Biblioteca.find(a => a.id == req.query.id);
     return res.json(libros);
 })
+
+// -----
