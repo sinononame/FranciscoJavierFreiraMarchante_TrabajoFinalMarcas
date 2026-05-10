@@ -70,6 +70,14 @@ app.get("/mi_fav", (req,res) => {
 //Usando post y /guardar_libro podremos añadir libros usando los campos necesarios 
 app.post("/guardar_libro", (req, res) => {
 
+    // Comprobamos que los campos obligatorios vengan rellenos
+    // Si alguno falta, devolvemos un error 400 y paramos aquí
+    if (!req.body.Titulo || !req.body["Autor/a"] || !req.body.Genero || !req.body.Año || !req.body.Paginas || !req.body.Editorial) {
+        return res.status(400).json({ error: "Faltan campos obligatorios" })
+    }
+
+    // Si llegamos aquí es que todos los campos están rellenos
+    // Creamos el nuevo libro con los datos que nos mandan
     let nuevoLibro = {
         id: Mi_Biblioteca.length + 1,
         Titulo: req.body.Titulo,
@@ -77,12 +85,15 @@ app.post("/guardar_libro", (req, res) => {
         Genero: req.body.Genero,
         Año: req.body.Año,
         Paginas: req.body.Paginas,
-        Disponible: req.body.Disponible,
+        Disponible: req.body.Disponible ?? true, // si no mandan Disponible, por defecto true
         Editorial: req.body.Editorial
     }
 
+    // Lo añadimos al array
     Mi_Biblioteca.push(nuevoLibro);
-    return res.status(201).json(nuevoLibro);  //El mensaje de HTTP 201 es "created"
+
+    // Devolvemos el libro creado con 201 que es "created"
+    return res.status(201).json(nuevoLibro);
 })
 
 //Al usar esta funcion modificaremos los datos de los libros 
@@ -147,6 +158,75 @@ app.get("/libros", (req, res) => {
 
     // Si no pones nada -> devuelve todos los libros
     return res.json(Mi_Biblioteca)
+})
+
+
+
+
+
+// -----
+
+// Operaciones con los recursos secundarios
+
+// Devuelve todos los préstamos
+app.get("/prestamos", (req, res) => {
+    return res.json(Mis_Prestamos)
+})
+
+// Devuelve todos los préstamos de un libro concreto
+// Ejemplo: /prestamos/libro/3 -> préstamos del libro 3
+app.get("/prestamos/libro/:libro_id", (req, res) => {
+
+    // Filtramos los préstamos cuyo libro_id coincida con el de la URL
+    const prestamos = Mis_Prestamos.filter(a => a.libro_id == req.params.libro_id)
+
+    // Si no hay ninguno, devolvemos 404
+    if (prestamos.length === 0) return res.status(404).json({ error: "No hay préstamos para ese libro" })
+
+    // Si hay, los devolvemos
+    return res.json(prestamos)
+})
+
+// Crea un nuevo préstamo
+app.post("/prestamos", (req, res) => {
+
+    // Comprobamos que vengan los campos obligatorios
+    if (!req.body.libro_id || !req.body.usuario || !req.body.fecha_prestamo || !req.body.fecha_devolucion) {
+        return res.status(400).json({ error: "Faltan campos obligatorios" })
+    }
+
+    // Creamos el nuevo préstamo con los datos que nos mandan
+    let nuevoPrestamo = {
+        id: Mis_Prestamos.length + 1,       // id automático
+        libro_id: req.body.libro_id,        // id del libro prestado
+        usuario: req.body.usuario,      // nombre del usuario
+        fecha_prestamo: req.body.fecha_prestamo,        // fecha de préstamo
+        fecha_devolucion: req.body.fecha_devolucion,        // fecha de devolución
+        devuelto: req.body.devuelto ?? false        // por defecto false
+    }
+
+    // Lo añadimos al array
+    Mis_Prestamos.push(nuevoPrestamo)
+
+    // Devolvemos el préstamo creado con código 201
+    return res.status(201).json(nuevoPrestamo)
+})
+
+// Borra un préstamo por su id
+// Ejemplo: /prestamos/3 → borra el préstamo 3
+app.delete("/prestamos/:id", (req, res) => {
+
+    // Buscamos la posición del préstamo en el array
+    const index = Mis_Prestamos.findIndex(a => a.id == req.params.id)
+
+    // Si no existe, devolvemos 404
+    if (index === -1) return res.status(404).json({ error: "Préstamo no encontrado" })
+
+    // Si existe, lo borramos
+    Mis_Prestamos.splice(index, 1)
+
+    // Devolvemos mensaje de confirmación
+    return res.send("Préstamo con id " + req.params.id + " eliminado")
 })
 
 // -----
