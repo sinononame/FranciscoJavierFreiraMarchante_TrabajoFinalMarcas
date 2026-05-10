@@ -47,6 +47,16 @@ let Mis_Prestamos = [
 
 // Interacciones
 
+// req (request) = lo que recibe el servidor del usuario
+//      req.body -> datos que manda en el body (JSON de Bruno)
+//      req.params -> datos que van en la URL (/libros/:id)
+//      req.query -> datos que van después del ? (/libros?Titulo=algo)
+
+// res (response) = lo que devuelve el servidor al usuario
+//      res.json() -> devuelve un JSON
+//      res.send() -> devuelve un texto
+//      res.status(404) -> pone el código HTTP
+
 //Al poner en el buscador simplemente la / saldrá toda la API al completo
 app.get("/", (req,res) => {
     return res.json(Mi_Biblioteca)
@@ -76,18 +86,28 @@ app.post("/guardar_libro", (req, res) => {
 })
 
 //Al usar esta funcion modificaremos los datos de los libros 
-app.put("/actualizar_libro", (req,res) => {
+app.put("/actualizar_libro", (req, res) => {
 
-    Mi_Biblioteca[req.body.id-1].Titulo = req.body.Titulo;
-    Mi_Biblioteca[req.body.id-1]["Autor/a"] = req.body["Autor/a"];
-    Mi_Biblioteca[req.body.id-1].Genero = req.body.Genero;
-    Mi_Biblioteca[req.body.id-1].Año = req.body.Año;
-    Mi_Biblioteca[req.body.id-1].Paginas = req.body.Paginas;
-    Mi_Biblioteca[req.body.id-1].Disponible = req.body.Disponible;
-    Mi_Biblioteca[req.body.id-1].Editorial = req.body.Editorial;
+    // req.body.id es el id que mandas en el JSON del body de Bruno
+    // .find() recorre el array buscando el libro cuyo id coincida
+    const libro = Mi_Biblioteca.find(a => a.id == req.body.id)
     
-    return res.json(Mi_Biblioteca[req.body.id-1])
+    // Si .find() no encontró nada, libro es undefined
+    // En ese caso devolvemos un error 404 y paramos aquí
+    if (!libro) return res.status(404).json({ error: "Libro no encontrado" })
 
+    // Si llegamos aquí es que el libro existe
+    // Actualizamos cada campo con lo que nos mandan en el body
+    libro.Titulo = req.body.Titulo;           // nuevo título
+    libro["Autor/a"] = req.body["Autor/a"];   // nuevo autor (lleva / por eso va entre corchetes)
+    libro.Genero = req.body.Genero;           // nuevo género
+    libro.Año = req.body.Año;                 // nuevo año
+    libro.Paginas = req.body.Paginas;         // nuevo número de páginas
+    libro.Disponible = req.body.Disponible;   // true o false
+    libro.Editorial = req.body.Editorial;     // nueva editorial
+
+    // Devolvemos el libro ya actualizado
+    return res.json(libro)
 })
 
 //Al usar esta simplemente borraremos un libro que queramos o si no, no se encontrará
@@ -101,20 +121,32 @@ app.delete("/borrar_libro", (req,res) => {
 })
 
 //Route param
+//Sirve para tomar el libro que yo quiera solo usando su ID
 app.get("/libros/:id", (req, res) => {
-    const libros = Mi_Biblioteca.find(a => a.id)
+    
+    // req.params.id es el número que pones en la URL, ejemplo: /libros/3
+    const libro = Mi_Biblioteca.find(a => a.id == req.params.id)
+    
+    // Si no encuentra ningún libro con ese id, devuelve error 404
+    if (!libro) return res.status(404).json({ error: "Libro no encontrado" })
+    
+    // Si lo encuentra, lo devuelve
+    return res.json(libro)
 })
 
-
-//Query param de nombre e id
+//Query param de nombre
+// para su uso "localhost:5555/libros?Titulo=El bestiario de Axlin" un libro en concreto
 app.get("/libros", (req, res) => {
-    const libros = Mi_Biblioteca.find(a => a.Nombre == req.query.Nombre);
-    return res.json(libros);
-})
 
-app.get("/libros", (req, res) => {
-    const libros = Mi_Biblioteca.find(a => a.id == req.query.id);
-    return res.json(libros);
+    // Si pones ?Titulo=algo -> busca por título
+    if (req.query.Titulo) {
+        const libro = Mi_Biblioteca.find(a => a.Titulo == req.query.Titulo)
+        if (!libro) return res.status(404).json({ error: "Libro no encontrado" })
+        return res.json(libro)
+    }
+
+    // Si no pones nada -> devuelve todos los libros
+    return res.json(Mi_Biblioteca)
 })
 
 // -----
