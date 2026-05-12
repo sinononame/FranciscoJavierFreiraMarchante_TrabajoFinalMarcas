@@ -30,13 +30,13 @@ let Mi_Biblioteca = [
 let Mis_Prestamos = [
     {"id": 1, "libro_id": 1, "usuario": "Paco García", "fecha_prestamo": "01/05/2026", "fecha_devolucion": "15/05/2026", "devuelto": false},
  
-    {"id": 2, "libro_id": 2, "usuario": "María López", "fecha_prestamo": "20/04/2026", "fecha_devolucion": "04/05/2026", "devuelto": true},
+    {"id": 2, "libro_id": 2, "usuario": "Manolita López", "fecha_prestamo": "20/04/2026", "fecha_devolucion": "04/05/2026", "devuelto": true},
     
     {"id": 3, "libro_id": 3, "usuario": "Carlos Ruiz", "fecha_prestamo": "03/04/2026", "fecha_devolucion": "17/05/2026", "devuelto": false},
     
     {"id": 4, "libro_id": 4, "usuario": "Laura Martínez", "fecha_prestamo": "20/04/2026", "fecha_devolucion": "24/04/2026", "devuelto": true},
     
-    {"id": 5, "libro_id": 5, "usuario": "Sergio Díaz", "fecha_prestamo": "06/05/2026", "fecha_devolucion": "20/05/2026", "devuelto": false}
+    {"id": 5, "libro_id": 5, "usuario": "Manolito Díaz", "fecha_prestamo": "06/05/2026", "fecha_devolucion": "20/05/2026", "devuelto": false}
 ]
 
 // -----
@@ -145,24 +145,63 @@ app.get("/libros/:id", (req, res) => {
     return res.json(libro)
 })
 
-//Query param de nombre
-// para su uso "localhost:5555/libros?Titulo=El bestiario de Axlin" un libro en concreto
+//Query param de nombre y filtros 
+// para su uso "localhost:5555/libros?Titulo=El bestiario de Axlin" un libro en concreto o simplemente algo menos concreto
+
 app.get("/libros", (req, res) => {
 
-    // Si pones ?Titulo=algo -> busca por título
+    // Filtro 1 - Si pones ?Titulo=algo -> busca por título
     if (req.query.Titulo) {
-        const libro = Mi_Biblioteca.find(a => a.Titulo == req.query.Titulo)
-        if (!libro) return res.status(404).json({ error: "Libro no encontrado" })
+        const libro = Mi_Biblioteca.filter(a => 
+            a.Titulo.toLowerCase().includes(req.query.Titulo.toLowerCase())
+        )
+        if (libro.length === 0) return res.status(404).json({ error: "Libro no encontrado" })
         return res.json(libro)
     }
 
-    // Si no pones nada -> devuelve todos los libros
+    // Filtro 2 - Si pones ?Disponible=true o ?Disponible=false → filtra por disponibilidad
+    if (req.query.Disponible !== undefined) {
+        const disponible = req.query.Disponible === "true"
+        const libros = Mi_Biblioteca.filter(a => a.Disponible === disponible)
+        return res.json(libros)
+    }
+
+    // Filtro 3 - Si pones ?min=300 o ?max=500 o ambos → filtra por páginas
+    if (req.query.min || req.query.max) {
+        let libros = Mi_Biblioteca
+
+        // Solo libros con más de X páginas
+        if (req.query.min) {
+            libros = libros.filter(a => a.Paginas >= req.query.min)
+        }
+
+        // Solo libros con menos de X páginas
+        if (req.query.max) {
+            libros = libros.filter(a => a.Paginas <= req.query.max)
+        }
+
+        if (libros.length === 0) return res.status(404).json({ error: "No hay libros en ese rango" })
+        return res.json(libros)
+    }
+
+    // Si no pones nada -> devuelve todos
     return res.json(Mi_Biblioteca)
 })
 
+app.get("/prestamos", (req, res) => {
 
+    // Filtro 4 - Si pones ?usuario=(nombre) -> busca préstamos de esa persona en concreto
+    if (req.query.usuario) {
+        const prestamos = Mis_Prestamos.filter(a => 
+            a.usuario.toLowerCase().includes(req.query.usuario.toLowerCase())
+        )
+        if (prestamos.length === 0) return res.status(404).json({ error: "No hay préstamos de ese usuario" })
+        return res.json(prestamos)
+    }
 
-
+    // Si no pones nada -> devuelve todos los préstamos
+    return res.json(Mis_Prestamos)
+})
 
 // -----
 
