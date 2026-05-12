@@ -43,8 +43,6 @@ let Mis_Prestamos = [
 
 // Punto 3 -----
 
-//TODO: Añadir alguno mas que falte
-
 // Interacciones
 
 // req (request) = lo que recibe el servidor del usuario
@@ -153,6 +151,45 @@ app.get("/libros/estadisticas", (req, res) => {
         minimo: minimo
     })
 })
+
+// Devuelve los N libros con más o menos páginas
+// Ejemplo: /libros/top?n=3&orden=desc -> los 3 libros con más páginas
+app.get("/libros/top", (req, res) => {
+
+    // N es el número de libros que quieres ver, por defecto 3
+    const n = req.query.n ? parseInt(req.query.n) : 3
+
+    // Ordenamos los libros por páginas
+    let libros = [...Mi_Biblioteca].sort((a, b) => {
+
+        // Si pones ?orden=asc → de menos a más páginas
+        if (req.query.orden === "asc") return a.Paginas - b.Paginas
+
+        // Si pones ?orden=desc o no pones nada → de más a menos páginas
+        return b.Paginas - a.Paginas
+    })
+
+    // Nos quedamos solo con los primeros N
+    libros = libros.slice(0, n)
+
+    return res.json(libros)
+})
+// Devuelve cuántos libros hay de cada género
+app.get("/libros/generos", (req, res) => {
+
+    // reduce() recorre el array y va contando cuántos libros hay de cada género
+    const generos = Mi_Biblioteca.reduce((contador, libro) => {
+
+        // Si el género ya existe en el contador, le suma 1
+        // Si no existe, lo crea con valor 1
+        contador[libro.Genero] = (contador[libro.Genero] || 0) + 1
+
+        return contador
+    }, {})
+
+    return res.json(generos)
+})
+
 
 //Route param
 //Sirve para tomar el libro que yo quiera solo usando su ID
@@ -286,5 +323,16 @@ app.delete("/prestamos/:id", (req, res) => {
     // Devolvemos mensaje de confirmación
     return res.send("Préstamo con id " + req.params.id + " eliminado")
 })
+
+// Devuelve el total de libros y préstamos
+app.get("/totales", (req, res) => {
+
+    return res.json({
+        total_libros: Mi_Biblioteca.length,       // cuántos libros hay
+        total_prestamos: Mis_Prestamos.length      // cuántos préstamos hay
+    })
+})
+
+
 
 // -----
