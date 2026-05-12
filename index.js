@@ -131,6 +131,29 @@ app.delete("/borrar_libro", (req,res) => {
 
 })
 
+//Punto 3 estadisticas
+// Devuelve la media, el máximo y el mínimo de páginas de todos los libros
+app.get("/libros/estadisticas", (req, res) => {
+
+    // Sacamos todas las páginas de cada libro en un array
+    // Ejemplo: [448, 496, 312, 432, 576]
+    const paginas = Mi_Biblioteca.map(a => a.Paginas)
+
+    // Calculamos la media sumando todas y dividiendo entre el total
+    const media = paginas.reduce((a, b) => a + b, 0) / paginas.length
+
+    // Math.max y Math.min buscan el mayor y el menor
+    const maximo = Math.max(...paginas)
+    const minimo = Math.min(...paginas)
+
+    // Devolvemos los tres valores
+    return res.json({
+        media: media,
+        maximo: maximo,
+        minimo: minimo
+    })
+})
+
 //Route param
 //Sirve para tomar el libro que yo quiera solo usando su ID
 app.get("/libros/:id", (req, res) => {
@@ -145,9 +168,10 @@ app.get("/libros/:id", (req, res) => {
     return res.json(libro)
 })
 
+//Punto 3 (filtros)
+
 //Query param de nombre y filtros 
 // para su uso "localhost:5555/libros?Titulo=El bestiario de Axlin" un libro en concreto o simplemente algo menos concreto
-
 app.get("/libros", (req, res) => {
 
     // Filtro 1 - Si pones ?Titulo=algo -> busca por título
@@ -188,6 +212,10 @@ app.get("/libros", (req, res) => {
     return res.json(Mi_Biblioteca)
 })
 
+// -----
+
+// Operaciones con los recursos secundarios
+
 app.get("/prestamos", (req, res) => {
 
     // Filtro 4 - Si pones ?usuario=(nombre) -> busca préstamos de esa persona en concreto
@@ -200,15 +228,6 @@ app.get("/prestamos", (req, res) => {
     }
 
     // Si no pones nada -> devuelve todos los préstamos
-    return res.json(Mis_Prestamos)
-})
-
-// -----
-
-// Operaciones con los recursos secundarios
-
-// Devuelve todos los préstamos
-app.get("/prestamos", (req, res) => {
     return res.json(Mis_Prestamos)
 })
 
