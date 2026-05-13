@@ -67,66 +67,89 @@ app.get("/mi_fav", (req,res) => {
 
 //Usando post y /guardar_libro podremos añadir libros usando los campos necesarios 
 app.post("/guardar_libro", (req, res) => {
+    try {
+        // Comprobamos que los campos obligatorios vengan rellenos
+        // Si alguno falta, devolvemos un error 400 y paramos aquí
+        if (!req.body.Titulo || !req.body["Autor/a"] || !req.body.Genero || !req.body.Año || !req.body.Paginas || !req.body.Editorial) {
+            return res.status(400).json({ error: "Faltan campos obligatorios" })
+        }
 
-    // Comprobamos que los campos obligatorios vengan rellenos
-    // Si alguno falta, devolvemos un error 400 y paramos aquí
-    if (!req.body.Titulo || !req.body["Autor/a"] || !req.body.Genero || !req.body.Año || !req.body.Paginas || !req.body.Editorial) {
-        return res.status(400).json({ error: "Faltan campos obligatorios" })
+        // Si llegamos aquí es que todos los campos están rellenos
+        // Creamos el nuevo libro con los datos que nos mandan
+        let nuevoLibro = {
+            id: Mi_Biblioteca.length + 1,
+            Titulo: req.body.Titulo,
+            "Autor/a": req.body["Autor/a"],
+            Genero: req.body.Genero,
+            Año: req.body.Año,
+            Paginas: req.body.Paginas,
+            Disponible: req.body.Disponible ?? true, // si no mandan Disponible, por defecto true
+            Editorial: req.body.Editorial
+        }
+
+        // Lo añadimos al array
+        Mi_Biblioteca.push(nuevoLibro);
+
+        // Devolvemos el libro creado con 201 que es "created"
+        return res.status(201).json(nuevoLibro);
+
+    } catch (error) {
+        // Si algo falla inesperadamente devuelve 500
+        // El try/catch evita que el servidor se rompa
+        return res.status(500).json({ error: "Error interno del servidor" })
     }
-
-    // Si llegamos aquí es que todos los campos están rellenos
-    // Creamos el nuevo libro con los datos que nos mandan
-    let nuevoLibro = {
-        id: Mi_Biblioteca.length + 1,
-        Titulo: req.body.Titulo,
-        "Autor/a": req.body["Autor/a"],
-        Genero: req.body.Genero,
-        Año: req.body.Año,
-        Paginas: req.body.Paginas,
-        Disponible: req.body.Disponible ?? true, // si no mandan Disponible, por defecto true
-        Editorial: req.body.Editorial
-    }
-
-    // Lo añadimos al array
-    Mi_Biblioteca.push(nuevoLibro);
-
-    // Devolvemos el libro creado con 201 que es "created"
-    return res.status(201).json(nuevoLibro);
 })
 
 //Al usar esta funcion modificaremos los datos de los libros 
 app.put("/actualizar_libro", (req, res) => {
+    try {
+        // req.body.id es el id que mandas en el JSON del body de Bruno
+        // .find() recorre el array buscando el libro cuyo id coincida
+        const libro = Mi_Biblioteca.find(a => a.id == req.body.id)
+        
+        // Si .find() no encontró nada, libro es undefined
+        // En ese caso devolvemos un error 404 y paramos aquí
+        if (!libro) return res.status(404).json({ error: "Libro no encontrado" })
 
-    // req.body.id es el id que mandas en el JSON del body de Bruno
-    // .find() recorre el array buscando el libro cuyo id coincida
-    const libro = Mi_Biblioteca.find(a => a.id == req.body.id)
-    
-    // Si .find() no encontró nada, libro es undefined
-    // En ese caso devolvemos un error 404 y paramos aquí
-    if (!libro) return res.status(404).json({ error: "Libro no encontrado" })
+        // Si llegamos aquí es que el libro existe
+        // Actualizamos cada campo con lo que nos mandan en el body
+        libro.Titulo = req.body.Titulo;           // nuevo título
+        libro["Autor/a"] = req.body["Autor/a"];   // nuevo autor (lleva / por eso va entre corchetes)
+        libro.Genero = req.body.Genero;           // nuevo género
+        libro.Año = req.body.Año;                 // nuevo año
+        libro.Paginas = req.body.Paginas;         // nuevo número de páginas
+        libro.Disponible = req.body.Disponible;   // true o false
+        libro.Editorial = req.body.Editorial;     // nueva editorial
 
-    // Si llegamos aquí es que el libro existe
-    // Actualizamos cada campo con lo que nos mandan en el body
-    libro.Titulo = req.body.Titulo;           // nuevo título
-    libro["Autor/a"] = req.body["Autor/a"];   // nuevo autor (lleva / por eso va entre corchetes)
-    libro.Genero = req.body.Genero;           // nuevo género
-    libro.Año = req.body.Año;                 // nuevo año
-    libro.Paginas = req.body.Paginas;         // nuevo número de páginas
-    libro.Disponible = req.body.Disponible;   // true o false
-    libro.Editorial = req.body.Editorial;     // nueva editorial
+        // Devolvemos el libro ya actualizado con 200
+        return res.status(200).json(libro)
 
-    // Devolvemos el libro ya actualizado
-    return res.json(libro)
+    } catch (error) {
+        // Si algo falla inesperadamente devuelve 500
+        // El try/catch evita que el servidor se rompa
+        return res.status(500).json({ error: "Error interno del servidor" })
+    }
 })
-
 //Al usar esta simplemente borraremos un libro que queramos o si no, no se encontrará
 app.delete("/borrar_libro", (req,res) => {
+    try {
+        // Buscamos la posición del libro en el array
+        const index = Mi_Biblioteca.findIndex(a => a.id == req.body.id)
 
-    const index = Mi_Biblioteca.findIndex(a => a.id == req.body.id)
-    if (index === -1) return res.status(404).send("Libro no encontrado")
-    Mi_Biblioteca.splice(index, 1)
-    return res.send("Libro con id " + req.body.id + " eliminado")
+        // Si no existe, devolvemos 404
+        if (index === -1) return res.status(404).json({ error: "Libro no encontrado" })
 
+        // Si existe, lo borramos
+        Mi_Biblioteca.splice(index, 1)
+
+        // Devolvemos mensaje de confirmación con 200
+        return res.status(200).send("Libro con id " + req.body.id + " eliminado")
+
+    } catch (error) {
+        // Si algo falla inesperadamente devuelve 500
+        // El try/catch evita que el servidor se rompa
+        return res.status(500).json({ error: "Error interno del servidor" })
+    }
 })
 
 //Punto 3 estadisticas
@@ -194,15 +217,21 @@ app.get("/libros/generos", (req, res) => {
 //Route param
 //Sirve para tomar el libro que yo quiera solo usando su ID
 app.get("/libros/:id", (req, res) => {
-    
-    // req.params.id es el número que pones en la URL, ejemplo: /libros/3
-    const libro = Mi_Biblioteca.find(a => a.id == req.params.id)
-    
-    // Si no encuentra ningún libro con ese id, devuelve error 404
-    if (!libro) return res.status(404).json({ error: "Libro no encontrado" })
-    
-    // Si lo encuentra, lo devuelve
-    return res.json(libro)
+    try {
+        // req.params.id es el número que pones en la URL, ejemplo: /libros/3
+        const libro = Mi_Biblioteca.find(a => a.id == req.params.id)
+
+        // Si no encuentra ningún libro con ese id, devuelve error 404
+        if (!libro) return res.status(404).json({ error: "Libro no encontrado" })
+
+        // Si lo encuentra, lo devuelve con 200
+        return res.status(200).json(libro)
+
+    } catch (error) {
+        // Si algo falla inesperadamente devuelve 500
+        // El try/catch evita que el servidor se rompa
+        return res.status(500).json({ error: "Error interno del servidor" })
+    }
 })
 
 //Punto 3 (filtros)
@@ -284,44 +313,56 @@ app.get("/prestamos/libro/:libro_id", (req, res) => {
 
 // Crea un nuevo préstamo
 app.post("/prestamos", (req, res) => {
+    try {
+        // Comprobamos que vengan los campos obligatorios
+        if (!req.body.libro_id || !req.body.usuario || !req.body.fecha_prestamo || !req.body.fecha_devolucion) {
+            return res.status(400).json({ error: "Faltan campos obligatorios" })
+        }
 
-    // Comprobamos que vengan los campos obligatorios
-    if (!req.body.libro_id || !req.body.usuario || !req.body.fecha_prestamo || !req.body.fecha_devolucion) {
-        return res.status(400).json({ error: "Faltan campos obligatorios" })
+        // Creamos el nuevo préstamo con los datos que nos mandan
+        let nuevoPrestamo = {
+            id: Mis_Prestamos.length + 1,       // id automático
+            libro_id: req.body.libro_id,        // id del libro prestado
+            usuario: req.body.usuario,          // nombre del usuario
+            fecha_prestamo: req.body.fecha_prestamo,        // fecha de préstamo
+            fecha_devolucion: req.body.fecha_devolucion,    // fecha de devolución
+            devuelto: req.body.devuelto ?? false            // por defecto false
+        }
+
+        // Lo añadimos al array
+        Mis_Prestamos.push(nuevoPrestamo)
+
+        // Devolvemos el préstamo creado con código 201
+        return res.status(201).json(nuevoPrestamo)
+
+    } catch (error) {
+        // Si algo falla inesperadamente devuelve 500
+        // El try/catch evita que el servidor se rompa
+        return res.status(500).json({ error: "Error interno del servidor" })
     }
-
-    // Creamos el nuevo préstamo con los datos que nos mandan
-    let nuevoPrestamo = {
-        id: Mis_Prestamos.length + 1,       // id automático
-        libro_id: req.body.libro_id,        // id del libro prestado
-        usuario: req.body.usuario,      // nombre del usuario
-        fecha_prestamo: req.body.fecha_prestamo,        // fecha de préstamo
-        fecha_devolucion: req.body.fecha_devolucion,        // fecha de devolución
-        devuelto: req.body.devuelto ?? false        // por defecto false
-    }
-
-    // Lo añadimos al array
-    Mis_Prestamos.push(nuevoPrestamo)
-
-    // Devolvemos el préstamo creado con código 201
-    return res.status(201).json(nuevoPrestamo)
 })
 
 // Borra un préstamo por su id
 // Ejemplo: /prestamos/3 → borra el préstamo 3
 app.delete("/prestamos/:id", (req, res) => {
+    try {
+        // Buscamos la posición del préstamo en el array
+        const index = Mis_Prestamos.findIndex(a => a.id == req.params.id)
 
-    // Buscamos la posición del préstamo en el array
-    const index = Mis_Prestamos.findIndex(a => a.id == req.params.id)
+        // Si no existe, devolvemos 404
+        if (index === -1) return res.status(404).json({ error: "Préstamo no encontrado" })
 
-    // Si no existe, devolvemos 404
-    if (index === -1) return res.status(404).json({ error: "Préstamo no encontrado" })
+        // Si existe, lo borramos
+        Mis_Prestamos.splice(index, 1)
 
-    // Si existe, lo borramos
-    Mis_Prestamos.splice(index, 1)
+        // Devolvemos mensaje de confirmación con 200
+        return res.status(200).send("Préstamo con id " + req.params.id + " eliminado")
 
-    // Devolvemos mensaje de confirmación
-    return res.send("Préstamo con id " + req.params.id + " eliminado")
+    } catch (error) {
+        // Si algo falla inesperadamente devuelve 500
+        // El try/catch evita que el servidor se rompa
+        return res.status(500).json({ error: "Error interno del servidor" })
+    }
 })
 
 // Devuelve el total de libros y préstamos
