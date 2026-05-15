@@ -1,0 +1,21 @@
+info:
+  name: DELETE_MiBiblioteca borrar libro
+  type: http
+  seq: 1
+
+http:
+  method: DELETE
+  url: http://localhost:5555/borrar_libro
+  body:
+    type: json
+    data: |-
+      {
+          "id": 1
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

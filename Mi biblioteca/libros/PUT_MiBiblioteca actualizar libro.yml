@@ -1,0 +1,28 @@
+info:
+  name: PUT_MiBiblioteca actualizar libro
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: http://localhost:5555/actualizar_libro
+  body:
+    type: json
+    data: |-
+      {
+          "id": 2,
+          "Titulo": "Titulo cambiado",
+          "Autor/a": "Autor cambiado",
+          "Genero": "Terror",
+          "Año": 2020,
+          "Paginas": 300,
+          "Disponible": false,
+          "Editorial": "Editorial cambiada"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

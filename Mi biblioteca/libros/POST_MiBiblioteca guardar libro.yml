@@ -1,0 +1,26 @@
+info:
+  name: POST_MiBiblioteca guardar libro
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: http://localhost:5555/guardar_libro
+  body:
+    type: json
+    data: |-
+      {
+          "Titulo": "Harry Potter",
+          "Autor/a": "J.K. Rowling",
+          "Genero": "Fantasía",
+          "Año": 1997,
+          "Paginas": 320,
+          "Editorial": "Salamandra"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
